@@ -1,10 +1,13 @@
 use std::{collections::HashMap, path::PathBuf};
 
+use crate::extends::Extension;
+
 type FileModifyTime = usize;
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct FileStore {
     store: HashMap<PathBuf, FileModifyTime>,
     ignore_paths: Vec<&'static str>,
-    ignore_extends: Vec<Extends>,
+    ignore_extends: Vec<Extension>,
 }
 impl FileStore {
     pub fn new() -> Self {
@@ -15,7 +18,7 @@ impl FileStore {
         }
     }
     fn is_new(&mut self, path: &PathBuf) -> bool {
-        self.store.contains_key(path)
+        !self.store.contains_key(path)
     }
     fn is_modify(&mut self, path: &PathBuf, time: &FileModifyTime) -> bool {
         if let Some(old_time) = self.store.get(path) {
@@ -23,50 +26,37 @@ impl FileStore {
         }
         false
     }
+    fn is_ignore(&self, path: &PathBuf) -> bool {
+        true
+    }
     fn update(&mut self, path: PathBuf, time: FileModifyTime) {
         if self.is_modify(&path, &time) {
             self.store.insert(path, time);
         }
     }
     fn insert(&mut self, path: PathBuf, time: FileModifyTime) {
-        if self.is_new(&path) {
+        if self.is_new(&path) && !self.is_ignore(&path) {
             self.store.insert(path, time);
         }
     }
     fn add_ignore_path(&mut self, path: &'static str) {
         self.ignore_paths.push(path);
     }
-    fn add_ignore_extends(&mut self, extends: Extends) {
+    fn add_ignore_extends(&mut self, extends: Extension) {
         self.ignore_extends.push(extends);
     }
 }
 
-enum Extends {
-    Txt,
-    Csv,
-    Xlsx,
-    Xlsm,
-    Pptx,
-    Bat,
-    Java,
-    Class,
-    Json,
-    Py,
-    Rs,
-    Ts,
-    Js,
-    Tsx,
-    Jsx,
-}
-
 #[cfg(test)]
 mod moni_test {
+    use crate::extends::Extension;
+
     use super::*;
     #[test]
     fn test_case_use_igonre_extends() {
         let mut fs = FileStore::new();
-        fs.add_ignore_extends(Extends::Txt);
-        fs.add_ignore_extends(Extends::Csv);
+        fs.add_ignore_extends(Extension::Txt);
+        fs.add_ignore_extends(Extension::Csv);
         fs.insert(PathBuf::from("test/test.py"), 0);
         fs.insert(PathBuf::from("test/test.txt"), 0);
         fs.insert(PathBuf::from("test/test.csv"), 0);
@@ -74,7 +64,8 @@ mod moni_test {
         fs.insert(PathBuf::from("test/test/test/test.csv"), 0);
         let mut tobe = FileStore::new();
         tobe.insert(PathBuf::from("test/test.py"), 0);
-        tobe.insert(PathBuf::from("test/test.txt"), 0);
-        tobe.insert(PathBuf::from("test/test.csv"), 0);
+        tobe.add_ignore_extends(Extension::Txt);
+        tobe.add_ignore_extends(Extension::Csv);
+        assert_eq!(fs, tobe);
     }
 }
