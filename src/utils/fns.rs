@@ -4,22 +4,26 @@ use std::{
 };
 
 pub fn get_all_file_names(dir_path: impl AsRef<Path>) -> Result<Vec<PathBuf>, String> {
-    let mut result = Vec::new();
     match fs::read_dir(dir_path) {
         Ok(dir) => {
-            dir.filter_map(|entry| entry.ok())
-                .filter_map(|entry| match entry.file_type() {
+            let mut result = Vec::new();
+            dir.filter_map(|entry| {
+                if let Some(file_type_and_path) = entry.ok().map(|entry| match entry.file_type() {
                     Ok(_) => Some((entry.file_type().unwrap(), entry.path())),
                     _ => None,
-                })
-                .for_each(|(file_type, path)| {
-                    if file_type.is_dir() {
-                        let child_files = get_all_file_names(path).unwrap();
-                        result.extend(child_files.into_iter());
-                    } else if file_type.is_file() {
-                        result.push(path)
-                    }
-                });
+                }) {
+                    return file_type_and_path;
+                };
+                None
+            })
+            .for_each(|(file_type, path)| {
+                if file_type.is_dir() {
+                    let child_files = get_all_file_names(path).unwrap();
+                    result.extend(child_files.into_iter());
+                } else if file_type.is_file() {
+                    result.push(path)
+                }
+            });
             Ok(result)
         }
         Err(e) => Err(e.to_string()),
