@@ -4,12 +4,12 @@ use crate::extends::Extension;
 
 type FileModifyTime = usize;
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct FileStore {
+pub struct FileStore<'a> {
     store: HashMap<PathBuf, FileModifyTime>,
-    ignore_paths: Vec<&'static str>,
+    ignore_paths: Vec<&'a str>,
     ignore_extends: Vec<Extension>,
 }
-impl FileStore {
+impl<'a> FileStore<'a> {
     pub fn new() -> Self {
         Self {
             store: HashMap::new(),
@@ -31,20 +31,20 @@ impl FileStore {
             .iter()
             .any(|extends| extends.is_match(path))
     }
-    fn update(&mut self, path: PathBuf, time: FileModifyTime) {
+    pub fn update(&mut self, path: PathBuf, time: FileModifyTime) {
         if self.is_modify(&path, &time) {
             self.store.insert(path, time);
         }
     }
-    fn insert(&mut self, path: PathBuf, time: FileModifyTime) {
+    pub fn insert(&mut self, path: PathBuf, time: FileModifyTime) {
         if self.is_new(&path) && !self.is_ignore(&path) {
             self.store.insert(path, time);
         }
     }
-    fn add_ignore_path(&mut self, path: &'static str) {
+    pub fn add_ignore_path(&mut self, path: &'a str) {
         self.ignore_paths.push(path);
     }
-    fn add_ignore_extends(&mut self, extends: Extension) {
+    pub fn add_ignore_extends(&mut self, extends: Extension) {
         self.ignore_extends.push(extends);
     }
 }
@@ -68,8 +68,6 @@ mod moni_test {
         tobe.insert(PathBuf::from("test/test.py"), 0);
         tobe.add_ignore_extends(Extension::Txt);
         tobe.add_ignore_extends(Extension::Csv);
-        println!("{:#?}", fs);
-        println!("{:#?}", tobe);
         assert_eq!(fs, tobe);
     }
 }

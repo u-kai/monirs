@@ -22,24 +22,7 @@ pub enum Extension {
 impl Extension {
     pub fn new(path: &PathBuf) -> Result<Self, String> {
         if let Some(Some(extension)) = path.extension().map(|path| path.to_str()) {
-            match extension {
-                "txt" => Ok(Self::Txt),
-                "csv" => Ok(Self::Csv),
-                "xlsx" => Ok(Self::Xlsx),
-                "xlsm" => Ok(Self::Xlsm),
-                "pptx" => Ok(Self::Pptx),
-                "bat" => Ok(Self::Bat),
-                "java" => Ok(Self::Java),
-                "class" => Ok(Self::Class),
-                "json" => Ok(Self::Json),
-                "py" => Ok(Self::Py),
-                "rs" => Ok(Self::Rs),
-                "ts" => Ok(Self::Ts),
-                "js" => Ok(Self::Js),
-                "tsx" => Ok(Self::Tsx),
-                "jsx" => Ok(Self::Jsx),
-                _ => Ok(Self::Other),
-            }
+            Ok(Self::str_to_self(extension))
         } else {
             Err(format!("{:#?} has not extension", path))
         }
@@ -49,6 +32,26 @@ impl Extension {
             self.as_str() == extension
         } else {
             false
+        }
+    }
+    fn str_to_self(extension: &str) -> Self {
+        match extension {
+            "txt" => Self::Txt,
+            "csv" => Self::Csv,
+            "xlsx" => Self::Xlsx,
+            "xlsm" => Self::Xlsm,
+            "pptx" => Self::Pptx,
+            "bat" => Self::Bat,
+            "java" => Self::Java,
+            "class" => Self::Class,
+            "json" => Self::Json,
+            "py" => Self::Py,
+            "rs" => Self::Rs,
+            "ts" => Self::Ts,
+            "js" => Self::Js,
+            "tsx" => Self::Tsx,
+            "jsx" => Self::Jsx,
+            _ => Self::Other,
         }
     }
     fn as_str(&self) -> &'static str {
@@ -73,6 +76,11 @@ impl Extension {
     }
 }
 
+impl From<&str> for Extension {
+    fn from(extension: &str) -> Self {
+        Self::str_to_self(extension)
+    }
+}
 #[cfg(test)]
 mod extension_test {
     use super::*;
