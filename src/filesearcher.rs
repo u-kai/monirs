@@ -128,6 +128,26 @@ mod test_filesearcher {
         }
     }
     #[test]
+    fn test_get_all_filenames_by_use_preset_tests_dir_case_igonre_filename() {
+        let filesearcher = FileSearcherBuilder::new()
+            .root("./tests")
+            .igonre_filename("test2.txt")
+            .build();
+        let all_flies = filesearcher.get_all_filenames();
+        let tobe_files = [
+            "./tests/test.rs",
+            "./tests/test1/test1-1/test1-1-1/test.txt",
+            "./tests/test2/test2.txt",
+        ];
+        for (i, file) in tobe_files.iter().enumerate() {
+            if i != 2 {
+                assert!(all_flies.contains(&file.to_string()))
+            } else {
+                assert!(!all_flies.contains(&file.to_string()))
+            }
+        }
+    }
+    #[test]
     fn test_get_all_filenames_by_use_preset_tests_dir() {
         let filesearcher = FileSearcherBuilder::new().root("./tests").build();
         let all_flies = filesearcher.get_all_filenames();
