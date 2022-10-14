@@ -49,6 +49,7 @@ impl<'a> FileSearcherBuilder<'a> {
         self
     }
 }
+#[derive(Debug)]
 pub struct FileSearcher<'a> {
     root: &'a str,
     ignore_re: Rc<Vec<Regex>>,
@@ -195,7 +196,6 @@ mod test_filesearcher {
             "./tests/test1/test1-1/test1-1-1/test.txt",
             "./tests/test2/test2.txt",
         ];
-        println!("{:?}", all_flies);
         for file in tobe_files {
             assert!(all_flies.contains(&file.to_string()))
         }

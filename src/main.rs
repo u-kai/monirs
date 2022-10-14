@@ -1,6 +1,9 @@
-use monirs::utils::fns::get_all_file_names;
+use monirs::moni::MoniBuilder;
 
 fn main() {
-    //let moni = Moni::new();
-    //moni.monitaring(|name, content| println!("name = {:?}, content={content}", name));
+    let moni = MoniBuilder::new()
+        .root("../")
+        .ignore_re("target")
+        .build()
+        .monitaring();
 }
