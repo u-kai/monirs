@@ -72,21 +72,61 @@ impl<'a> FileSearcher<'a> {
                 Err(_) => None,
             })
             .for_each(|(file_type, path)| {
-                let path = path.as_os_str().to_str().unwrap();
-                if file_type.is_dir() {
-                    let child = self.spawn_child(path);
-                    all_files.append(&mut child.get_all_filenames())
-                } else {
-                    all_files.push(path.to_string());
+                if !self.is_ignore(&path) {
+                    let path = path.as_os_str().to_str().unwrap();
+                    if file_type.is_dir() {
+                        let child = self.spawn_child(path);
+                        all_files.append(&mut child.get_all_filenames())
+                    } else {
+                        all_files.push(path.to_string());
+                    }
                 }
             });
         all_files
+    }
+    fn is_ignore(&self, path: &PathBuf) -> bool {
+        let path_str = path.file_name().unwrap().to_str().unwrap();
+        self.is_ignore_extension(path)
+            || self.is_ignore_filename(path_str)
+            || self.is_ignore_path(path)
+    }
+    fn is_ignore_extension(&self, path: &PathBuf) -> bool {
+        self.ignore_extension
+            .iter()
+            .any(|extension| extension.is_match(path))
+    }
+    fn is_ignore_filename(&self, path: &str) -> bool {
+        self.ignore_filenames.contains(&path)
+    }
+    fn is_ignore_path(&self, path: &PathBuf) -> bool {
+        self.ignore_paths.contains(path)
     }
 }
 
 #[cfg(test)]
 mod test_filesearcher {
     use super::*;
+    #[test]
+    fn test_get_all_filenames_by_use_preset_tests_dir_case_igonre_txt() {
+        let filesearcher = FileSearcherBuilder::new()
+            .root("./tests")
+            .igonre_extension("txt")
+            .build();
+        let all_flies = filesearcher.get_all_filenames();
+        let tobe_files = [
+            "./tests/test.rs",
+            "./tests/test1/test1-1/test1-1-1/test.txt",
+            "./tests/test2/test2.txt",
+            "./tests/test2/test2.md",
+        ];
+        for (i, file) in tobe_files.iter().enumerate() {
+            if i == 0 {
+                assert!(all_flies.contains(&file.to_string()))
+            } else {
+                assert!(!all_flies.contains(&file.to_string()))
+            }
+        }
+    }
     #[test]
     fn test_get_all_filenames_by_use_preset_tests_dir() {
         let filesearcher = FileSearcherBuilder::new().root("./tests").build();
