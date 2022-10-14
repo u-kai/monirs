@@ -27,7 +27,9 @@ impl FileStore {
         false
     }
     fn is_ignore(&self, path: &PathBuf) -> bool {
-        true
+        self.ignore_extends
+            .iter()
+            .any(|extends| extends.is_match(path))
     }
     fn update(&mut self, path: PathBuf, time: FileModifyTime) {
         if self.is_modify(&path, &time) {
@@ -66,6 +68,8 @@ mod moni_test {
         tobe.insert(PathBuf::from("test/test.py"), 0);
         tobe.add_ignore_extends(Extension::Txt);
         tobe.add_ignore_extends(Extension::Csv);
+        println!("{:#?}", fs);
+        println!("{:#?}", tobe);
         assert_eq!(fs, tobe);
     }
 }

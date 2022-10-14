@@ -1,4 +1,4 @@
-use std::{ffi::OsStr, path::PathBuf};
+use std::path::PathBuf;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Extension {
