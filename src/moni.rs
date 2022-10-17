@@ -55,6 +55,7 @@ impl<'a> Moni<'a> {
             .arg("-c")
             .arg(self.exe_command)
             .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit())
             .output()
         {
             Err(e) => println!("{:#?}", e),
