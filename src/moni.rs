@@ -23,13 +23,13 @@ impl<'a> Moni<'a> {
             self.searcher
                 .get_all_filenames()
                 .into_iter()
-                .map(|filepath| {
+                .filter_map(|filepath| {
                     let file_path_str = filepath.as_str();
-                    let meta = File::open(file_path_str)
-                        .expect(&format!("{} not found", file_path_str))
-                        .metadata()
-                        .unwrap();
-                    (filepath, to_num_time(meta))
+                    if let Ok(Ok(meta)) = File::open(file_path_str).map(|op| op.metadata()) {
+                        Some((filepath, to_num_time(meta)))
+                    } else {
+                        None
+                    }
                 })
                 .for_each(|(filepath, time)| {
                     let mut store = self.filestore.lock().unwrap();
@@ -63,13 +63,13 @@ impl<'a> MoniBuilder<'a> {
         searcher
             .get_all_filenames()
             .into_iter()
-            .map(|filepath| {
+            .filter_map(|filepath| {
                 let file_path_str = filepath.as_str();
-                let meta = File::open(file_path_str)
-                    .expect(&format!("{} is not found", file_path_str))
-                    .metadata()
-                    .unwrap();
-                (filepath, meta)
+                if let Ok(Ok(meta)) = File::open(file_path_str).map(|op| op.metadata()) {
+                    Some((filepath, meta))
+                } else {
+                    None
+                }
             })
             .for_each(|(path, meta)| filestore.insert(path, to_num_time(meta)));
         let filestore = Arc::new(Mutex::new(filestore));
