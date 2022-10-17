@@ -17,9 +17,9 @@ pub struct Moni<'a> {
     searcher: FileSearcher<'a>,
 }
 impl<'a> Moni<'a> {
-    pub fn monitaring(&self) {
+    pub fn monitaring(&self, around_secs: u64, around_nanos: u32) {
         loop {
-            thread::sleep(time::Duration::new(1, 0));
+            thread::sleep(time::Duration::new(around_secs, around_nanos));
             self.searcher
                 .get_all_filenames()
                 .into_iter()
