@@ -151,6 +151,27 @@ mod test_filesearcher {
                 assert!(!all_flies.contains(&file.to_string()))
             }
         }
+        let filesearcher = FileSearcherBuilder::new()
+            .root("./tests")
+            .target_extension("txt")
+            .target_extension("rs")
+            .build();
+        println!("{:?}", filesearcher);
+        let all_flies = filesearcher.get_all_filenames();
+        let tobe_files = [
+            "./tests/test.rs",
+            "./tests/test1/test1-1/test1-1-1/test.txt",
+            "./tests/test2/test2.txt",
+            "./tests/test2/test2.md",
+        ];
+        println!("{:?}", all_flies);
+        for (i, file) in tobe_files.iter().enumerate() {
+            if i != 3 {
+                assert!(all_flies.contains(&file.to_string()))
+            } else {
+                assert!(!all_flies.contains(&file.to_string()))
+            }
+        }
     }
     #[test]
     fn test_get_all_filenames_by_use_preset_tests_dir_case_ignore_txt() {
