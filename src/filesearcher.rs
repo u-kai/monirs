@@ -10,6 +10,7 @@ use crate::extends::Extension;
 
 pub struct FileSearcherBuilder<'a> {
     root: &'a str,
+    target_extension: Vec<Extension>,
     ignore_re: Vec<Regex>,
     ignore_filenames: Vec<&'a str>,
     ignore_extension: Vec<Extension>,
@@ -18,6 +19,7 @@ impl<'a> FileSearcherBuilder<'a> {
     pub fn new() -> Self {
         Self {
             root: "./",
+            target_extension: Vec::new(),
             ignore_re: Vec::new(),
             ignore_filenames: Vec::new(),
             ignore_extension: Vec::new(),
@@ -26,6 +28,7 @@ impl<'a> FileSearcherBuilder<'a> {
     pub fn build(self) -> FileSearcher<'a> {
         FileSearcher {
             root: self.root,
+            target_extensions: Rc::new(self.target_extension),
             ignore_re: Rc::new(self.ignore_re),
             ignore_filenames: Rc::new(self.ignore_filenames),
             ignore_extension: Rc::new(self.ignore_extension),
@@ -33,6 +36,11 @@ impl<'a> FileSearcherBuilder<'a> {
     }
     pub fn root(mut self, root: &'a str) -> Self {
         self.root = root;
+        self
+    }
+    pub fn target_extension(mut self, target_extension: &str) -> Self {
+        self.target_extension
+            .push(Extension::from(target_extension));
         self
     }
     pub fn ignore_filename(mut self, filename: &'a str) -> Self {
@@ -52,6 +60,7 @@ impl<'a> FileSearcherBuilder<'a> {
 #[derive(Debug)]
 pub struct FileSearcher<'a> {
     root: &'a str,
+    target_extensions: Rc<Vec<Extension>>,
     ignore_re: Rc<Vec<Regex>>,
     ignore_filenames: Rc<Vec<&'a str>>,
     ignore_extension: Rc<Vec<Extension>>,
@@ -60,6 +69,7 @@ impl<'a> FileSearcher<'a> {
     pub fn spawn_child(&self, child_dir: &'a str) -> Self {
         FileSearcher {
             root: child_dir,
+            target_extensions: self.target_extensions.clone(),
             ignore_re: self.ignore_re.clone(),
             ignore_filenames: self.ignore_filenames.clone(),
             ignore_extension: self.ignore_extension.clone(),
@@ -76,12 +86,15 @@ impl<'a> FileSearcher<'a> {
             })
             .for_each(|(file_type, path)| {
                 if !self.is_ignore(&path) {
-                    let path = path.as_os_str().to_str().unwrap();
                     if file_type.is_dir() {
+                        let path = path.as_os_str().to_str().unwrap();
                         let child = self.spawn_child(path);
                         all_files.append(&mut child.get_all_filenames())
                     } else {
-                        all_files.push(path.to_string());
+                        if self.is_target(&path) {
+                            let path = path.as_os_str().to_str().unwrap();
+                            all_files.push(path.to_string());
+                        }
                     }
                 }
             });
@@ -92,6 +105,13 @@ impl<'a> FileSearcher<'a> {
         self.is_ignore_extension(path)
             || self.is_ignore_filename(path_str)
             || self.is_ignore_re(path_str)
+    }
+    fn is_target(&self, path: &PathBuf) -> bool {
+        self.target_extensions.len() == 0
+            || self
+                .target_extensions
+                .iter()
+                .any(|extension| extension.is_match(path))
     }
     fn is_ignore_extension(&self, path: &PathBuf) -> bool {
         self.ignore_extension
@@ -109,6 +129,29 @@ impl<'a> FileSearcher<'a> {
 #[cfg(test)]
 mod test_filesearcher {
     use super::*;
+    #[test]
+    fn test_get_all_filenames_by_use_preset_tests_dir_case_target_txt() {
+        let filesearcher = FileSearcherBuilder::new()
+            .root("./tests")
+            .target_extension("txt")
+            .build();
+        println!("{:?}", filesearcher);
+        let all_flies = filesearcher.get_all_filenames();
+        let tobe_files = [
+            "./tests/test.rs",
+            "./tests/test2/test2.md",
+            "./tests/test1/test1-1/test1-1-1/test.txt",
+            "./tests/test2/test2.txt",
+        ];
+        println!("{:?}", all_flies);
+        for (i, file) in tobe_files.iter().enumerate() {
+            if i >= 2 {
+                assert!(all_flies.contains(&file.to_string()))
+            } else {
+                assert!(!all_flies.contains(&file.to_string()))
+            }
+        }
+    }
     #[test]
     fn test_get_all_filenames_by_use_preset_tests_dir_case_ignore_txt() {
         let filesearcher = FileSearcherBuilder::new()
