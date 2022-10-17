@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::collections::HashMap;
 
 type FileModifyTime = u128;
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -16,7 +16,6 @@ impl FileStore {
     }
     pub fn is_modify(&self, path: &str, time: FileModifyTime) -> bool {
         if let Some(old_time) = self.store.get(path) {
-            println!("old is {} now is {}", old_time, time);
             return old_time != &time;
         }
         false
