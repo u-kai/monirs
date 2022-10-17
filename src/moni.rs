@@ -25,7 +25,10 @@ impl<'a> Moni<'a> {
                 .into_iter()
                 .map(|filepath| {
                     let file_path_str = filepath.as_str();
-                    let meta = File::open(file_path_str).unwrap().metadata().unwrap();
+                    let meta = File::open(file_path_str)
+                        .expect(&format!("{} not found", file_path_str))
+                        .metadata()
+                        .unwrap();
                     (filepath, to_num_time(meta))
                 })
                 .for_each(|(filepath, time)| {
