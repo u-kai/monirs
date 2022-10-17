@@ -2,6 +2,7 @@ use core::time;
 use std::{
     fs::{File, Metadata},
     os::unix::prelude::MetadataExt,
+    process::{Command, Stdio},
     sync::{Arc, Mutex},
     thread,
 };
@@ -13,13 +14,16 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Moni<'a> {
+    exe_command: &'a str,
     filestore: Arc<Mutex<FileStore>>,
     searcher: FileSearcher<'a>,
+    around_secs: u64,
+    around_nanos: u32,
 }
 impl<'a> Moni<'a> {
-    pub fn monitaring(&self, around_secs: u64, around_nanos: u32) {
+    pub fn monitaring(&self) {
         loop {
-            thread::sleep(time::Duration::new(around_secs, around_nanos));
+            thread::sleep(time::Duration::new(self.around_secs, self.around_nanos));
             self.searcher
                 .get_all_filenames()
                 .into_iter()
@@ -34,26 +38,43 @@ impl<'a> Moni<'a> {
                 .for_each(|(filepath, time)| {
                     let mut store = self.filestore.lock().unwrap();
                     if store.is_modify(&filepath, time) {
-                        println!("{} modify", filepath);
                         store.update(filepath, time);
+                        self.exe_command();
                         return;
                     }
                     if store.is_new(&filepath) {
-                        println!("{} new", filepath);
                         store.insert(filepath, time);
+                        self.exe_command();
                         return;
                     }
                 })
         }
     }
+    fn exe_command(&self) {
+        match Command::new("zsh")
+            .arg("-c")
+            .arg(self.exe_command)
+            .stdout(Stdio::inherit())
+            .output()
+        {
+            Err(e) => println!("{:#?}", e),
+            _ => println!("{}moni{}", "-".repeat(25), "-".repeat(25)),
+        };
+    }
 }
 pub struct MoniBuilder<'a> {
+    exe_command: &'a str,
     searcher_builder: FileSearcherBuilder<'a>,
+    around_secs: u64,
+    around_nanos: u32,
 }
 
 impl<'a> MoniBuilder<'a> {
     pub fn new() -> Self {
         Self {
+            around_nanos: 100_000_000,
+            exe_command: "echo hello world",
+            around_secs: 0,
             searcher_builder: FileSearcherBuilder::new(),
         }
     }
@@ -74,25 +95,51 @@ impl<'a> MoniBuilder<'a> {
             .for_each(|(path, meta)| filestore.insert(path, to_num_time(meta)));
         let filestore = Arc::new(Mutex::new(filestore));
         Moni {
+            exe_command: self.exe_command,
             filestore,
             searcher,
+            around_nanos: self.around_nanos,
+            around_secs: self.around_secs,
         }
+    }
+    pub fn exe_command(mut self, exe_command: &'a str) -> Self {
+        self.exe_command = exe_command;
+        self
     }
     pub fn root(self, root: &'a str) -> Self {
         let searcher_builder = self.searcher_builder.root(root);
-        Self { searcher_builder }
+        Self {
+            searcher_builder,
+            ..self
+        }
+    }
+    pub fn target_extension(self, extension: &'a str) -> Self {
+        let searcher_builder = self.searcher_builder.target_extension(extension);
+        Self {
+            searcher_builder,
+            ..self
+        }
     }
     pub fn ignore_filename(self, filename: &'a str) -> Self {
         let searcher_builder = self.searcher_builder.ignore_filename(filename);
-        Self { searcher_builder }
+        Self {
+            searcher_builder,
+            ..self
+        }
     }
     pub fn ignore_extension(self, extension: &'a str) -> Self {
         let searcher_builder = self.searcher_builder.ignore_extension(extension);
-        Self { searcher_builder }
+        Self {
+            searcher_builder,
+            ..self
+        }
     }
     pub fn ignore_re(self, re: &'a str) -> Self {
         let searcher_builder = self.searcher_builder.ignore_re(re);
-        Self { searcher_builder }
+        Self {
+            searcher_builder,
+            ..self
+        }
     }
 }
 

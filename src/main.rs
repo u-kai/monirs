@@ -2,9 +2,10 @@ use monirs::moni::MoniBuilder;
 
 fn main() {
     MoniBuilder::new()
-        .root("../../")
+        .root("./")
+        .target_extension("java")
+        .exe_command("java test.java")
         .ignore_re("target")
-        .ignore_extension("rs")
         .build()
-        .monitaring(0, 100000000);
+        .monitaring();
 }
