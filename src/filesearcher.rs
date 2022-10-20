@@ -38,6 +38,9 @@ impl<'a> FileSearcherBuilder<'a> {
         self.root = root;
         self
     }
+    pub fn set_root(&mut self, root: &'a str) {
+        self.root = root;
+    }
     pub fn target_extension(mut self, target_extension: &str) -> Self {
         self.target_extension
             .push(Extension::from(target_extension));
@@ -55,6 +58,19 @@ impl<'a> FileSearcherBuilder<'a> {
         let regex = Regex::new(re).unwrap();
         self.ignore_re.push(regex);
         self
+    }
+    pub fn set_ignore_files(&mut self, filenames: Vec<&'a str>) {
+        self.ignore_filenames = filenames;
+    }
+    pub fn set_ignore_re(&mut self, re: Vec<&'a str>) {
+        let res = re.iter().map(|re| Regex::new(re).unwrap()).collect();
+        self.ignore_re = res;
+    }
+    pub fn set_target_extensions(&mut self, target_extensions: Vec<&'a str>) {
+        self.target_extension = target_extensions
+            .iter()
+            .map(|e| Extension::from(*e))
+            .collect();
     }
 }
 #[derive(Debug)]

@@ -24,9 +24,10 @@ pub struct Moni<'a, P: MoniPrinter> {
     around_nanos: u32,
     printer: P,
 }
-impl<'a, P: MoniPrinter, C: MoniConfig> From<C> for Moni<'a, P> {
-    fn from(config: C) -> Self {
-        config.to_instance()
+impl<'a, C: MoniConfig + 'a> From<&'a C> for Moni<'a, DefaultMoniPrinter<'static>> {
+    fn from(config: &'a C) -> Self {
+        let c = config.to_instance(DefaultMoniPrinter::default());
+        c
     }
 }
 impl<'a, P: MoniPrinter> Moni<'a, P> {
@@ -173,7 +174,7 @@ impl<'a> MoniBuilder<'a> {
             searcher_builder: FileSearcherBuilder::new(),
         }
     }
-    pub fn build(self) -> Moni<'a, DefaultMoniPrinter<'a>> {
+    pub fn build_with_printer<P: MoniPrinter>(self, printer: P) -> Moni<'a, P> {
         let searcher = self.searcher_builder.build();
         let mut filestore = FileStore::new();
         searcher
@@ -189,16 +190,18 @@ impl<'a> MoniBuilder<'a> {
             })
             .for_each(|(path, meta)| filestore.insert(path, to_num_time(meta)));
         let filestore = Arc::new(Mutex::new(filestore));
-
         Moni {
             exe_command: self.exe_command,
             exe_fn: self.exe_fn,
-            printer: DefaultMoniPrinter::default(),
+            printer,
             filestore,
             searcher,
             around_nanos: self.around_nanos,
             around_secs: self.around_secs,
         }
+    }
+    pub fn build(self) -> Moni<'a, DefaultMoniPrinter<'a>> {
+        self.build_with_printer(DefaultMoniPrinter::default())
     }
     pub fn exe_fn<F>(mut self, exe_fn: F) -> Self
     where
@@ -207,6 +210,7 @@ impl<'a> MoniBuilder<'a> {
         self.exe_fn = Some(Box::new(exe_fn));
         self
     }
+
     pub fn exe_command(mut self, exe_command: &'a str) -> Self {
         self.exe_command = Some(exe_command);
         self
@@ -217,6 +221,9 @@ impl<'a> MoniBuilder<'a> {
             searcher_builder,
             ..self
         }
+    }
+    pub fn set_root(&mut self, root: &'a str) {
+        self.searcher_builder.set_root(root);
     }
     pub fn target_extension(self, extension: &'a str) -> Self {
         let searcher_builder = self.searcher_builder.target_extension(extension);
@@ -245,6 +252,16 @@ impl<'a> MoniBuilder<'a> {
             searcher_builder,
             ..self
         }
+    }
+    pub fn set_ignore_files(&mut self, filenames: Vec<&'a str>) {
+        self.searcher_builder.set_ignore_files(filenames);
+    }
+    pub fn set_ignore_re(&mut self, re: Vec<&'a str>) {
+        self.searcher_builder.set_ignore_re(re);
+    }
+    pub fn set_target_extensions(&mut self, target_extensions: Vec<&'a str>) {
+        self.searcher_builder
+            .set_target_extensions(target_extensions);
     }
 }
 

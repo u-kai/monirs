@@ -1,11 +1,11 @@
-use monirs::moni::MoniBuilder;
+use monirs::{
+    moni::DefaultMoniPrinter,
+    moni_config::{MoniConfig, MoniJsonConfig},
+};
 
 fn main() {
-    MoniBuilder::new()
-        .root("./")
-        .target_extension("py")
-        .exe_command("python test.py")
-        .ignore_re("target")
-        .build()
-        .monitaring();
+    MoniJsonConfig::from_file("moni.json")
+        .unwrap()
+        .to_instance(DefaultMoniPrinter::default())
+        .monitaring()
 }
