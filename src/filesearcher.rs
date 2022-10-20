@@ -101,17 +101,19 @@ impl<'a> FileSearcher<'a> {
                 Err(_) => None,
             })
             .for_each(|(file_type, path)| {
-                if !self.is_ignore(&path) {
-                    if file_type.is_dir() {
-                        let path = path.as_os_str().to_str().unwrap();
-                        let child = self.spawn_child(path);
-                        all_files.append(&mut child.get_all_filenames())
-                    } else {
-                        if self.is_target(&path) {
-                            let path = path.as_os_str().to_str().unwrap();
-                            all_files.push(path.to_string());
-                        }
-                    }
+                if self.is_ignore(&path) {
+                    return;
+                }
+                if file_type.is_dir() {
+                    let path = path.as_os_str().to_str().unwrap();
+                    let child = self.spawn_child(path);
+                    all_files.append(&mut child.get_all_filenames());
+                    return;
+                }
+                if self.is_target(&path) {
+                    let path = path.as_os_str().to_str().unwrap();
+                    all_files.push(path.to_string());
+                    return;
                 }
             });
         all_files

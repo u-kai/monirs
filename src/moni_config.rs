@@ -29,9 +29,6 @@ impl MoniJsonConfig {
         }
     }
 }
-fn string_vec_to_str_vec<'a>(string_vec: &'a [String]) -> Vec<&'a str> {
-    string_vec.iter().map(|s| s.as_str()).collect()
-}
 
 impl MoniConfig for MoniJsonConfig {
     fn to_instance<'a, P: MoniPrinter>(&'a self, printer: P) -> Moni<'a, P> {
@@ -65,6 +62,9 @@ impl MoniConfig for MoniJsonConfig {
             .exe_command(&self.json_content.execute_command)
             .build_with_printer(printer)
     }
+}
+fn string_vec_to_str_vec<'a>(string_vec: &'a [String]) -> Vec<&'a str> {
+    string_vec.iter().map(|s| s.as_str()).collect()
 }
 
 #[derive(Serialize, Deserialize)]

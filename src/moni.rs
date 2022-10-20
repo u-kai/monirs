@@ -77,19 +77,29 @@ impl<'a, P: MoniPrinter> Moni<'a, P> {
             return;
         }
     }
+
     fn exe_command(&self, exe_command: &str) {
-        match Command::new("zsh")
+        let mut command = target_os_command();
+        command
             .arg("-c")
             .arg(exe_command)
             .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit())
-            .output()
-        {
-            Err(e) => println!("{:#?}", e),
-            Ok(o) if o.status.success() => self.printer.print_ok_line(),
-            Ok(o) if !o.status.success() => self.printer.print_error_line(),
-            _ => self.printer.print_ok_line(),
-        };
+            .stderr(Stdio::inherit());
+        let status = command.status();
+        match status {
+            Ok(status) if status.success() => {
+                self.printer.print_ok_line();
+            }
+            Ok(status) if !status.success() => {
+                self.printer.print_error_line();
+            }
+            Err(e) => {
+                println!("{:#?}", e)
+            }
+            _ => {
+                todo!("not impl case")
+            }
+        }
     }
 }
 
@@ -267,4 +277,17 @@ impl<'a> MoniBuilder<'a> {
 
 fn to_num_time(metadata: Metadata) -> u128 {
     metadata.size() as u128
+}
+
+#[cfg(target_os = "linux")]
+fn target_os_command() -> Command {
+    Command::new("bash")
+}
+#[cfg(target_os = "windows")]
+fn target_os_command() -> Command {
+    Command::new("bash")
+}
+#[cfg(target_os = "macos")]
+fn target_os_command() -> Command {
+    Command::new("zsh")
 }
