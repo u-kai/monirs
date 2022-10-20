@@ -48,19 +48,12 @@ impl MoniConfig for MoniJsonConfig {
                 self.json_content.target_extensions.as_ref().unwrap(),
             ))
         }
-        if self.json_content.target_extensions.is_some() {
-            builder.set_target_extensions(string_vec_to_str_vec(
-                self.json_content.target_extensions.as_ref().unwrap(),
-            ))
-        }
         if self.json_content.workspace.is_some() {
             builder.set_root(self.json_content.workspace.as_ref().unwrap().as_str());
         } else {
             builder.set_root("./");
         }
-        builder
-            .exe_command(&self.json_content.execute_command)
-            .build_with_printer(printer)
+        builder.build_with_printer(printer)
     }
 }
 fn string_vec_to_str_vec<'a>(string_vec: &'a [String]) -> Vec<&'a str> {

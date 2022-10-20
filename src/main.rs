@@ -1,10 +1,18 @@
+use clap::Parser;
 use monirs::{
-    moni::DefaultMoniPrinter,
+    cli::MoniCli,
+    moni::{DefaultMoniPrinter, Moni},
     moni_config::{MoniConfig, MoniJsonConfig},
 };
 fn main() {
-    MoniJsonConfig::from_file("moni.json")
-        .unwrap()
-        .to_instance(DefaultMoniPrinter::default())
-        .monitaring()
+    let cli = MoniCli::parse();
+    println!("{:?}", cli);
+    cli.monitaring();
+    //let config = MoniJsonConfig::from_file("moni.json");
+    //let moni = match &config {
+    //Ok(config) => Moni::from(config),
+    //Err(e) => panic!("{:?}", e),
+    //};
+
+    //println!("{:?}", env!("PWD"));
 }
