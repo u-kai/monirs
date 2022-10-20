@@ -10,6 +10,7 @@ use std::{
 use crate::{
     filesearcher::{FileSearcher, FileSearcherBuilder},
     filestore::FileStore,
+    moni_config::MoniConfig,
 };
 
 type CallBack = Box<dyn Fn(&str) -> Result<(), String>>;
@@ -22,6 +23,11 @@ pub struct Moni<'a, P: MoniPrinter> {
     around_secs: u64,
     around_nanos: u32,
     printer: P,
+}
+impl<'a, P: MoniPrinter, C: MoniConfig> From<C> for Moni<'a, P> {
+    fn from(config: C) -> Self {
+        config.to_instance()
+    }
 }
 impl<'a, P: MoniPrinter> Moni<'a, P> {
     pub fn monitaring(&self) {

@@ -1,0 +1,7 @@
+{
+  "workspace": "./",
+  "targetExtensions": ["rs", "txt"],
+  "ignoreFilenames": ["test.rs"],
+  "ignoreRegexs": ["**/utils/*"],
+  "executeCommand": "echo Hello World"
+}
