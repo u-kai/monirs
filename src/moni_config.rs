@@ -41,9 +41,9 @@ impl MoniConfig for MoniJsonConfig {
                 self.json_content.ignore_filenames.as_ref().unwrap(),
             ))
         }
-        if self.json_content.ignore_regexs.is_some() {
+        if self.json_content.ignore_path_words.is_some() {
             builder.set_ignore_re(string_vec_to_str_vec(
-                self.json_content.ignore_regexs.as_ref().unwrap(),
+                self.json_content.ignore_path_words.as_ref().unwrap(),
             ))
         }
         if self.json_content.target_extensions.is_some() {
@@ -72,6 +72,6 @@ pub struct MoniJson {
     workspace: Option<String>,
     target_extensions: Option<Vec<String>>,
     ignore_filenames: Option<Vec<String>>,
-    ignore_regexs: Option<Vec<String>>,
+    ignore_path_words: Option<Vec<String>>,
     execute_command: String,
 }

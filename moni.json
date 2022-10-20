@@ -2,6 +2,6 @@
   "workspace": "./",
   "target_extensions": ["rs", "txt"],
   "ignore_filenames": ["test.rs"],
-  "ignore_regexs": ["utils/\\*"],
+  "ignore_path_words": ["utils"],
   "execute_command": "echo Hello World"
 }
