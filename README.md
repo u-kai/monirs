@@ -18,11 +18,15 @@ If you want use monirs,you prepare moni.json like below example.
 }
 ```
 
+### Parameters
+
 - workspace is target of monitaring root directory.
 - If you set target_extensions, monirs is only monitaring these extensions file.
 - If you set ignore_filenames, monirs is not monitaring containe filename file.
 - If you set ignore_path_words, monirs is not monitaring containe filename file.
 - execute_command is must set. This value is execute command when file change
+
+And run rust program is below<br>
 
 ```rust
 fn main() {
@@ -32,6 +36,22 @@ fn main() {
         .monitaring()
 }
 ```
+
+If you want to use commands with the path of the detected file, set the moni.json as follows.
+
+```json
+{
+  "workspace": "./",
+  "target_extensions": ["rs", "txt"],
+  "ignore_filenames": ["test.rs"],
+  "ignore_path_words": ["utils"],
+  "execute_command": "echo MONI_FILE_PATH"
+}
+```
+
+MONI_FILE_PATH words in execute_command is dynamically assigned the path of the detected file.<br>
+
+In the exapmle above,the console outputs the file path where the change was detected.
 
 ## How to customize
 
