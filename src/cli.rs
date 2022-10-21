@@ -1,6 +1,9 @@
 use clap::Parser;
 
-use crate::moni::{DefaultMoniPrinter, Moni, MoniBuilder};
+use crate::{
+    moni::{DefaultMoniPrinter, Moni, MoniBuilder},
+    moni_config::MoniConfig,
+};
 
 #[derive(Parser, Debug)]
 #[clap(
@@ -27,6 +30,11 @@ pub struct MoniCli {
     execute_command: String,
 }
 
+//impl<'a> MoniConfig<'a> for MoniCli {
+//fn execute_command(&'a self) -> &'a str {
+
+//}
+//}
 impl MoniCli {
     pub fn monitaring(&self) {
         let d = self.workspace.as_ref();

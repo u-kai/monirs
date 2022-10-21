@@ -7,3 +7,4 @@ pub mod filesearcher;
 pub mod filestore;
 pub mod moni;
 pub mod moni_config;
+pub mod moni_execute_command;
