@@ -89,15 +89,20 @@ impl<'a, P: MoniPrinter> Moni<'a, P> {
         command
             .arg("-c")
             .arg(exe_command)
-            .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit());
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
         let status = command.status();
+        let output = command.output();
         match status {
             Ok(status) if status.success() => {
                 self.printer.print_ok_line();
+                println!("{}", String::from_utf8_lossy(&output.unwrap().stdout));
+                self.printer.print_line();
             }
             Ok(status) if !status.success() => {
                 self.printer.print_error_line();
+                println!("{}", String::from_utf8_lossy(&output.unwrap().stderr));
+                self.printer.print_line();
             }
             Err(e) => {
                 println!("{:#?}", e)
@@ -111,6 +116,7 @@ impl<'a, P: MoniPrinter> Moni<'a, P> {
 
 pub trait MoniPrinter {
     fn print_start_line(&self) -> ();
+    fn print_line(&self) -> ();
     fn print_ok_line(&self) -> ();
     fn print_error_line(&self) -> ();
 }
@@ -138,7 +144,7 @@ impl<'a> DefaultMoniPrinter<'a> {
         let separator_len = self.calc_added_separator_len(message);
         if separator_len % 2 == 0 {
             println!(
-                "{}-{}{}",
+                "{}{}{}-",
                 self.separator.repeat(separator_len),
                 message,
                 self.separator.repeat(separator_len)
@@ -162,6 +168,10 @@ impl<'a> MoniPrinter for DefaultMoniPrinter<'a> {
         self.print_message(self.title);
         self.print_message(&bottom_separator);
         println!();
+    }
+    fn print_line(&self) {
+        let message = "--";
+        self.print_message(message);
     }
     fn print_ok_line(&self) {
         let message = " ok ";
