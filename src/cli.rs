@@ -1,8 +1,7 @@
 use clap::Parser;
 
 use crate::{
-    moni::{DefaultMoniPrinter, Moni, MoniBuilder},
-    moni_config::MoniConfig,
+    moni::DefaultMoniPrinter, moni_config::MoniConfig, moni_execute_command::MoniExecuteCommand,
 };
 
 #[derive(Parser, Debug)]
@@ -22,6 +21,9 @@ pub struct MoniCli {
     /// Sets the some ignore filenames split by comma or space
     #[clap(short = 'i', long)]
     ignore_filenames: Option<String>,
+    /// Sets the some ignore extensions split by comma or space
+    #[clap(short = 'n', long)]
+    ignore_extensions: Option<String>,
     /// Sets the some ignore path words split by comma or space
     #[clap(short = 'p', long)]
     ignore_path_words: Option<String>,
@@ -30,14 +32,103 @@ pub struct MoniCli {
     execute_command: String,
 }
 
-//impl<'a> MoniConfig<'a> for MoniCli {
-//fn execute_command(&'a self) -> &'a str {
-
-//}
-//}
-impl MoniCli {
-    pub fn monitaring(&self) {}
+fn split_space_or_comma<'a>(source: &'a str) -> Vec<&'a str> {
+    if source.contains(",") {
+        return source.split(",").collect();
+    }
+    if source.contains(" ") {
+        return source.split(" ").map(|s| s.trim_end().trim()).collect();
+    }
+    vec![source]
 }
-fn string_vec_to_str_vec<'a>(string_vec: &'a [String]) -> Vec<&'a str> {
-    string_vec.iter().map(|s| s.as_str()).collect()
+impl<'a> MoniConfig<'a> for MoniCli {
+    fn execute_command(&'a self) -> MoniExecuteCommand<'a> {
+        MoniExecuteCommand::new(&self.execute_command)
+    }
+    fn ignore_extensions(&'a self) -> Option<Vec<&'a str>> {
+        if let Some(source) = &self.ignore_extensions {
+            Some(split_space_or_comma(source))
+        } else {
+            None
+        }
+    }
+    fn ignore_filenames(&'a self) -> Option<Vec<&'a str>> {
+        if let Some(source) = &self.ignore_filenames {
+            Some(split_space_or_comma(source))
+        } else {
+            None
+        }
+    }
+    fn ignore_path_words(&'a self) -> Option<Vec<&'a str>> {
+        if let Some(source) = &self.ignore_path_words {
+            Some(split_space_or_comma(source))
+        } else {
+            None
+        }
+    }
+    fn target_extensions(&'a self) -> Option<Vec<&'a str>> {
+        if let Some(source) = &self.target_extensions {
+            Some(split_space_or_comma(source))
+        } else {
+            None
+        }
+    }
+    fn workspace(&'a self) -> Option<&'a str> {
+        None
+    }
+}
+impl MoniCli {
+    pub fn monitaring(&self) {
+        let printer = DefaultMoniPrinter::default();
+        let moni = self.to_moni(printer);
+        moni.monitaring()
+    }
+}
+
+#[cfg(test)]
+mod test_moni_cli_config {
+    use super::*;
+    impl MoniCli {
+        fn new(
+            workspace: &str,
+            ignore_extensions: &str,
+            ignore_filenames: &str,
+            ignore_path_words: &str,
+            target_extensions: &str,
+            execute_command: &str,
+        ) -> Self {
+            Self {
+                workspace: Some(workspace.to_string()),
+                target_extensions: Some(target_extensions.to_string()),
+                ignore_filenames: Some(ignore_filenames.to_string()),
+                ignore_extensions: Some(ignore_extensions.to_string()),
+                ignore_path_words: Some(ignore_path_words.to_string()),
+                execute_command: execute_command.to_string(),
+            }
+        }
+    }
+    #[test]
+    fn test_ignore_extensions_case_split_space() {
+        let moni_cli = MoniCli::new("test", "py js", "", "", "", "");
+        assert_eq!(moni_cli.ignore_extensions().unwrap(), vec!["py", "js"]);
+        let moni_cli = MoniCli::new("test", "py js rs", "", "", "", "");
+        assert_eq!(
+            moni_cli.ignore_extensions().unwrap(),
+            vec!["py", "js", "rs"]
+        );
+        let moni_cli = MoniCli::new("test", "py", "", "", "", "");
+        assert_eq!(moni_cli.ignore_extensions().unwrap(), vec!["py"]);
+    }
+    #[test]
+    fn test_ignore_extensions_case_split_comma() {
+        let moni_cli = MoniCli::new("test", "py,js", "", "", "", "");
+        assert_eq!(moni_cli.ignore_extensions().unwrap(), vec!["py", "js"]);
+        let moni_cli = MoniCli::new("test", "py,js,rs", "", "", "", "");
+        assert_eq!(
+            moni_cli.ignore_extensions().unwrap(),
+            vec!["py", "js", "rs"]
+        );
+        let moni_cli = MoniCli::new("test", "py", "", "", "", "");
+        assert_eq!(moni_cli.ignore_extensions().unwrap(), vec!["py"]);
+    }
 }
