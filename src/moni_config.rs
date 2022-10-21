@@ -7,16 +7,19 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::moni::{Moni, MoniBuilder, MoniPrinter};
+use crate::{
+    moni::{Moni, MoniBuilder, MoniPrinter},
+    moni_execute_command::MoniExecuteCommand,
+};
 pub trait MoniConfig<'a> {
     fn workspace(&'a self) -> Option<&'a str>;
     fn ignore_filenames(&'a self) -> Option<Vec<&'a str>>;
     fn ignore_extensions(&'a self) -> Option<Vec<&'a str>>;
     fn ignore_path_words(&'a self) -> Option<Vec<&'a str>>;
     fn target_extensions(&'a self) -> Option<Vec<&'a str>>;
-    fn execute_command(&'a self) -> &'a str;
+    fn execute_command(&'a self) -> MoniExecuteCommand<'a>;
     fn to_moni<P: MoniPrinter>(&'a self, printer: P) -> Moni<'a, P> {
-        let mut builder = MoniBuilder::new().exe_command(&self.execute_command());
+        let mut builder = MoniBuilder::new().exe_command(self.execute_command());
         if self.ignore_filenames().is_some() {
             builder.set_ignore_files(self.ignore_filenames().unwrap())
         }
@@ -39,7 +42,7 @@ pub struct MoniJsonConfig {
     json_content: MoniJson,
 }
 
-impl MoniJsonConfig {
+impl<'a> MoniJsonConfig {
     pub fn from_file<P: AsRef<Path> + Debug>(filepath: P) -> Result<Self, String> {
         if let Ok(file) = File::open(&filepath) {
             let mut json_content = String::new();
@@ -54,8 +57,8 @@ impl MoniJsonConfig {
 }
 
 impl<'a> MoniConfig<'a> for MoniJsonConfig {
-    fn execute_command(&'a self) -> &'a str {
-        &self.json_content.execute_command
+    fn execute_command(&'a self) -> MoniExecuteCommand<'a> {
+        MoniExecuteCommand::new(&self.json_content.execute_command)
     }
     fn ignore_extensions(&'a self) -> Option<Vec<&'a str>> {
         opt_string_vec_to_str_vec(self.json_content.ignore_extensions.as_ref())

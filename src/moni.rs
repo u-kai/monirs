@@ -11,12 +11,13 @@ use crate::{
     filesearcher::{FileSearcher, FileSearcherBuilder},
     filestore::FileStore,
     moni_config::MoniConfig,
+    moni_execute_command::MoniExecuteCommand,
 };
 
 type CallBack = Box<dyn Fn(&str) -> Result<(), String>>;
 
 pub struct Moni<'a, P: MoniPrinter> {
-    exe_command: Option<&'a str>,
+    exe_command: Option<MoniExecuteCommand<'a>>,
     exe_fn: Option<CallBack>,
     filestore: Arc<Mutex<FileStore>>,
     searcher: FileSearcher<'a>,
@@ -73,7 +74,12 @@ impl<'a, P: MoniPrinter> Moni<'a, P> {
             return;
         }
         if self.exe_command.is_some() {
-            self.exe_command(self.exe_command.as_ref().unwrap());
+            let exe_command = self
+                .exe_command
+                .as_ref()
+                .unwrap()
+                .to_execute_command(filepath);
+            self.exe_command(&exe_command);
             return;
         }
     }
@@ -167,7 +173,7 @@ impl<'a> MoniPrinter for DefaultMoniPrinter<'a> {
     }
 }
 pub struct MoniBuilder<'a> {
-    exe_command: Option<&'a str>,
+    exe_command: Option<MoniExecuteCommand<'a>>,
     exe_fn: Option<CallBack>,
     searcher_builder: FileSearcherBuilder<'a>,
     around_secs: u64,
@@ -221,7 +227,7 @@ impl<'a> MoniBuilder<'a> {
         self
     }
 
-    pub fn exe_command(mut self, exe_command: &'a str) -> Self {
+    pub fn exe_command(mut self, exe_command: MoniExecuteCommand<'a>) -> Self {
         self.exe_command = Some(exe_command);
         self
     }

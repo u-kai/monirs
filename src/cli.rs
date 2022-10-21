@@ -36,35 +36,7 @@ pub struct MoniCli {
 //}
 //}
 impl MoniCli {
-    pub fn monitaring(&self) {
-        let d = self.workspace.as_ref();
-        let printer = DefaultMoniPrinter::default();
-        let mut builder = MoniBuilder::new().exe_command(&self.execute_command);
-        //if self.ignore_filenames.is_some() {
-        //let mut filenames = self.ignore_filenames.as_ref().unwrap();
-
-        //builder.set_ignore_files(string_vec_to_str_vec(
-        //self.ignore_filenames.as_ref().unwrap(),
-        //))
-        //}
-        //if self.ignore_path_words.is_some() {
-        //builder.set_ignore_re(string_vec_to_str_vec(
-        //self.ignore_path_words.as_ref().unwrap(),
-        //))
-        //}
-        //if self.target_extensions.is_some() {
-        //builder.set_target_extensions(string_vec_to_str_vec(
-        //self.target_extensions.as_ref().unwrap(),
-        //))
-        //}
-        if self.workspace.is_some() {
-            builder.set_root(self.workspace.as_ref().unwrap().as_str());
-        } else {
-            builder.set_root("./");
-        }
-        let moni = builder.build_with_printer(printer);
-        moni.monitaring();
-    }
+    pub fn monitaring(&self) {}
 }
 fn string_vec_to_str_vec<'a>(string_vec: &'a [String]) -> Vec<&'a str> {
     string_vec.iter().map(|s| s.as_str()).collect()

@@ -3,5 +3,5 @@
   "target_extensions": ["rs", "txt"],
   "ignore_filenames": ["test.rs"],
   "ignore_path_words": ["utils"],
-  "execute_command": "echo Hello World"
+  "execute_command": "cat MONI_FILE_PATH"
 }
