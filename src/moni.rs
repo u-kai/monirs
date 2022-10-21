@@ -13,9 +13,6 @@ use crate::{
     moni_config::MoniConfig,
 };
 
-fn string_vec_to_str_vec<'a>(string_vec: &'a [String]) -> Vec<&'a str> {
-    string_vec.iter().map(|s| s.as_str()).collect()
-}
 type CallBack = Box<dyn Fn(&str) -> Result<(), String>>;
 
 pub struct Moni<'a, P: MoniPrinter> {
@@ -27,38 +24,13 @@ pub struct Moni<'a, P: MoniPrinter> {
     around_nanos: u32,
     printer: P,
 }
-impl<'a, C: MoniConfig + 'a> From<&'a C> for Moni<'a, DefaultMoniPrinter<'static>> {
+impl<'a, C: MoniConfig<'a>> From<&'a C> for Moni<'a, DefaultMoniPrinter<'static>> {
     fn from(config: &'a C) -> Self {
-        let c = config.to_instance(DefaultMoniPrinter::default());
+        let c = config.to_moni(DefaultMoniPrinter::default());
         c
     }
 }
 impl<'a, P: MoniPrinter> Moni<'a, P> {
-    pub fn from_options(
-        workspace: Option<&'a str>,
-        target_extensions: Option<Vec<&'a str>>,
-        ignore_filenames: Option<Vec<&'a str>>,
-        ignore_path_words: Option<Vec<&'a str>>,
-        execute_command: &'a str,
-        printer: P,
-    ) -> Self {
-        let mut builder = MoniBuilder::new().exe_command(&execute_command);
-        if ignore_filenames.is_some() {
-            builder.set_ignore_files(ignore_filenames.unwrap())
-        }
-        if ignore_path_words.is_some() {
-            builder.set_ignore_re(ignore_path_words.unwrap())
-        }
-        if target_extensions.is_some() {
-            builder.set_target_extensions(target_extensions.unwrap())
-        }
-        if workspace.is_some() {
-            builder.set_root(workspace.unwrap());
-        } else {
-            builder.set_root("./");
-        }
-        builder.build_with_printer(printer)
-    }
     pub fn monitaring(&self) {
         self.printer.print_start_line();
         loop {

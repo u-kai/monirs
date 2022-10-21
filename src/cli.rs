@@ -29,6 +29,7 @@ pub struct MoniCli {
 
 impl MoniCli {
     pub fn monitaring(&self) {
+        let d = self.workspace.as_ref();
         let printer = DefaultMoniPrinter::default();
         let mut builder = MoniBuilder::new().exe_command(&self.execute_command);
         //if self.ignore_filenames.is_some() {
