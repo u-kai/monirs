@@ -74,7 +74,7 @@ impl<'a> MoniConfig<'a> for MoniCli {
         }
     }
     fn workspace(&'a self) -> Option<&'a str> {
-        None
+        self.workspace.as_ref().map(|s| s.as_str())
     }
 }
 impl MoniCli {

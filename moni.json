@@ -1,5 +1,5 @@
 {
-  "workspace": "./javas",
-  "target_extensions": ["py"],
-  "execute_command": "python MONI_FILE_PATH"
+  "workspace": "./src",
+  "target_extensions": ["rs"],
+  "execute_command": "cat MONI_FILE_PATH"
 }
