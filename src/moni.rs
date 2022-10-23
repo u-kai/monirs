@@ -31,6 +31,7 @@ impl<'a, C: MoniConfig<'a>> From<&'a C> for Moni<'a, DefaultMoniPrinter<'static>
         c
     }
 }
+
 impl<'a, P: MoniPrinter> Moni<'a, P> {
     pub fn monitaring(&self) {
         self.printer.print_start_line();
@@ -93,6 +94,7 @@ impl<'a, P: MoniPrinter> Moni<'a, P> {
             .stderr(Stdio::piped());
         let status = command.status();
         let output = command.output();
+        self.printer.print_execute_command_line(exe_command);
         match status {
             Ok(status) if status.success() => {
                 self.printer.print_ok_line();
@@ -116,6 +118,7 @@ impl<'a, P: MoniPrinter> Moni<'a, P> {
 
 pub trait MoniPrinter {
     fn print_start_line(&self) -> ();
+    fn print_execute_command_line(&self, execute_command: &str) -> ();
     fn print_line(&self) -> ();
     fn print_ok_line(&self) -> ();
     fn print_error_line(&self) -> ();
@@ -168,6 +171,9 @@ impl<'a> MoniPrinter for DefaultMoniPrinter<'a> {
         self.print_message(self.title);
         self.print_message(&bottom_separator);
         println!();
+    }
+    fn print_execute_command_line(&self, execute_command: &str) -> () {
+        println!("{execute_command}")
     }
     fn print_line(&self) {
         let message = "--";
