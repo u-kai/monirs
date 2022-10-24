@@ -6,7 +6,7 @@ use std::{
 
 use regex::Regex;
 
-use crate::extensions::Extension;
+use super::extensions::Extension;
 
 pub struct FileSearcherBuilder<'a> {
     root: &'a str,

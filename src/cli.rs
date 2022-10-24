@@ -1,7 +1,8 @@
 use clap::Parser;
 
 use crate::{
-    moni::DefaultMoniPrinter, moni_config::MoniConfig, moni_execute_command::MoniExecuteCommand,
+    configs::moni_config::MoniConfig,
+    parts::{debuger::MoniDebuger, moni_execute_command::MoniExecuteCommand},
 };
 
 #[derive(Parser, Debug)]
@@ -42,6 +43,9 @@ fn split_space_or_comma<'a>(source: &'a str) -> Vec<&'a str> {
     vec![source]
 }
 impl<'a> MoniConfig<'a> for MoniCli {
+    fn debug_message(&'a self) -> MoniDebuger {
+        MoniDebuger::default()
+    }
     fn execute_command(&'a self) -> MoniExecuteCommand<'a> {
         MoniExecuteCommand::new(&self.execute_command)
     }
@@ -79,8 +83,7 @@ impl<'a> MoniConfig<'a> for MoniCli {
 }
 impl MoniCli {
     pub fn monitaring(&self) {
-        let printer = DefaultMoniPrinter::default();
-        let moni = self.to_moni(printer);
+        let moni = self.to_moni();
         moni.monitaring()
     }
 }
