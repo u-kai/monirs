@@ -86,29 +86,19 @@ impl<'a> DefaultMoniDebugMessage<'a> {
     }
     fn make_message(&self, message: &str) -> String {
         let separator_len = self.calc_added_separator_len(message);
+        let top_and_bottom = self.separator.repeat(separator_len);
         if separator_len % 2 == 0 {
-            return format!(
-                "{}{}{}-",
-                self.separator.repeat(separator_len),
-                message,
-                self.separator.repeat(separator_len)
-            );
+            return format!("{}{}{}-", top_and_bottom, message, top_and_bottom,);
         }
-        format!(
-            "{}{}{}",
-            self.separator.repeat(separator_len),
-            message,
-            self.separator.repeat(separator_len)
-        )
+        format!("{}{}{}", top_and_bottom, message, top_and_bottom,)
     }
     pub fn make_start_line_message(&self) -> String {
-        let top_separator = self.separator.repeat(self.title.len());
-        let bottom_separator = self.separator.repeat(self.title.len());
+        let top_and_bottom_separator = self.make_message(&self.separator.repeat(self.title.len()));
         format!(
             "\n{}\n{}\n{}\n",
-            self.make_message(&top_separator),
+            &top_and_bottom_separator,
             self.make_message(self.title),
-            self.make_message(&bottom_separator)
+            &top_and_bottom_separator,
         )
     }
     pub fn make_execute_command_line_message(&self) -> String {
