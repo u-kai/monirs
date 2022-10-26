@@ -68,9 +68,9 @@ fn main() {
         match reader.read_to_string(&mut content) {
             Err(e) => Err(e.to_string()),
             _ => {
-                let one_line = format!("file path is \n{}\n", filepath);
-                let two_line = format!("file content is \n{}\n", content);
-                Ok(format!("{}\n{}\n", one_line, two_line))
+                let frist_line = format!("file path is \n{}\n", filepath);
+                let second_line = format!("file content is \n{}\n", content);
+                Ok(format!("{}\n{}\n", frist_line, second_line))
             }
         }
     };
