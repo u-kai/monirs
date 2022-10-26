@@ -30,7 +30,7 @@ pub fn monitaring_from_json() -> () {
         json.to_moni_with_debuger(debuger).monitaring()
     }
 }
-type CallBack = Box<dyn Fn(&str) -> Result<(), String>>;
+type CallBack = Box<dyn Fn(&str) -> Result<String, String>>;
 
 pub struct Moni<'a, D: MoniDebugerConfig> {
     exe_command: Option<MoniExecuteCommand<'a>>,
@@ -82,8 +82,9 @@ impl<'a, D: MoniDebugerConfig> Moni<'a, D> {
     fn exe(&self, filepath: &str) {
         if self.exe_fn.is_some() {
             match (self.exe_fn.as_ref().unwrap())(filepath) {
-                Ok(_) => {
+                Ok(result) => {
                     self.debuger.print_ok_line();
+                    println!("{}", result);
                     self.debuger.print_line();
                 }
                 Err(e) => {
@@ -182,7 +183,7 @@ impl<'a> MoniBuilder<'a> {
     }
     pub fn exe_fn<F>(mut self, exe_fn: F) -> Self
     where
-        F: Fn(&str) -> Result<(), String> + 'static,
+        F: Fn(&str) -> Result<String, String> + 'static,
     {
         self.exe_fn = Some(Box::new(exe_fn));
         self
