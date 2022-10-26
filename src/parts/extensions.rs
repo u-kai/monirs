@@ -17,6 +17,7 @@ pub enum Extension {
     Js,
     Tsx,
     Jsx,
+    Md,
     Other,
 }
 impl Extension {
@@ -51,6 +52,7 @@ impl Extension {
             "js" => Self::Js,
             "tsx" => Self::Tsx,
             "jsx" => Self::Jsx,
+            "md" => Self::Md,
             _ => Self::Other,
         }
     }
@@ -71,6 +73,7 @@ impl Extension {
             Self::Js => "js",
             Self::Tsx => "tsx",
             Self::Jsx => "jsx",
+            Self::Md => "md",
             Self::Other => "other",
         }
     }

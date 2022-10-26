@@ -1,54 +1,36 @@
 use crate::configs::debuger_config::MoniDebugerConfig;
 
-pub struct MoniDebuger {
-    title: String,
-    separator: String,
-    success: String,
-    error: String,
-    execute: String,
+pub struct MoniDebuger<C: MoniDebugerConfig> {
+    inner: C,
 }
-impl Default for MoniDebuger {
+impl<'a> Default for MoniDebuger<DefaultMoniDebugMessage<'a>> {
     fn default() -> Self {
         Self::from(DefaultMoniDebugMessage::default())
     }
 }
-impl MoniDebuger {
+impl<C> MoniDebuger<C>
+where
+    C: MoniDebugerConfig,
+{
     pub fn print_error_line(&self) -> () {
-        println!("{}", self.error)
+        println!("{}", self.inner.error_message())
     }
     pub fn print_ok_line(&self) -> () {
-        println!("{}", self.success)
+        println!("{}", self.inner.success_message())
     }
     pub fn print_line(&self) -> () {
-        println!("{}", self.separator)
+        println!("{}", self.inner.line_message())
     }
     pub fn print_start_line(&self) -> () {
-        println!("{}", self.title)
+        println!("{}", self.inner.start_message())
     }
     pub fn print_execute_command_line(&self, execute_command: &str) -> () {
-        println!("{} {execute_command}", self.execute)
+        println!("{}", self.inner.execute_message(execute_command))
     }
 }
-impl<'a, C: MoniDebugerConfig> From<C> for MoniDebuger {
+impl<'a, C: MoniDebugerConfig> From<C> for MoniDebuger<C> {
     fn from(config: C) -> Self {
-        Self {
-            title: config.start_message(),
-            separator: config.line_message(),
-            success: config.success_message(),
-            error: config.error_message(),
-            execute: config.execute_message_(),
-        }
-    }
-}
-impl MoniDebuger {
-    pub fn new<T: Into<String>>(title: T, separator: T, success: T, error: T, execute: T) -> Self {
-        Self {
-            title: title.into(),
-            separator: separator.into(),
-            success: success.into(),
-            error: error.into(),
-            execute: execute.into(),
-        }
+        Self { inner: config }
     }
 }
 
@@ -60,9 +42,6 @@ pub struct DefaultMoniDebugMessage<'a> {
 impl<'a> MoniDebugerConfig for DefaultMoniDebugMessage<'a> {
     fn error_message(&self) -> String {
         self.make_error_line_message()
-    }
-    fn execute_message_(&self) -> String {
-        String::from("exe")
     }
     fn execute_message(&self, command: &str) -> String {
         self.make_execute_command_line_message(command)
@@ -101,6 +80,7 @@ impl<'a> DefaultMoniDebugMessage<'a> {
         }
         format!("{}{}{}", top_and_bottom, message, top_and_bottom,)
     }
+
     pub fn make_start_line_message(&self) -> String {
         let top_and_bottom_separator = self.make_message(&self.separator.repeat(self.title.len()));
         format!(
@@ -111,7 +91,7 @@ impl<'a> DefaultMoniDebugMessage<'a> {
         )
     }
     pub fn make_execute_command_line_message(&self, command: &str) -> String {
-        self.make_message(&format!("execute {}", command))
+        self.make_message(&format!(" execute {}", command))
     }
     pub fn make_line_message(&self) -> String {
         let message = "--";

@@ -7,7 +7,10 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::parts::{debuger::MoniDebuger, moni_execute_command::MoniExecuteCommand};
+use crate::parts::{
+    debuger::{DefaultMoniDebugMessage, MoniDebuger},
+    moni_execute_command::MoniExecuteCommand,
+};
 
 use super::{debuger_config::MoniDebugerConfig, moni_config::MoniConfig};
 #[derive(Serialize, Deserialize)]
@@ -36,7 +39,7 @@ impl MoniJson {
         self.debug_message.is_some()
     }
 }
-impl<'a> MoniConfig<'a> for MoniJson {
+impl<'a> MoniConfig<'a, MoniDebugerConfigJson> for MoniJson {
     fn execute_command(&'a self) -> MoniExecuteCommand<'a> {
         MoniExecuteCommand::new(&self.execute_command)
     }
@@ -55,32 +58,12 @@ impl<'a> MoniConfig<'a> for MoniJson {
     fn workspace(&'a self) -> Option<&'a str> {
         self.workspace.as_ref().map(|s| s.as_str())
     }
-    fn debug_message(&'a self) -> MoniDebuger {
+    fn debug_message(&'a self) -> MoniDebuger<MoniDebugerConfigJson> {
         if let Some(config) = self.debug_message.as_ref() {
-            let title = if let Some(title) = config.title.as_ref() {
-                title
-            } else {
-                "start monitaring"
-            };
-            let error = if let Some(error) = config.error.as_ref() {
-                error
-            } else {
-                "error"
-            };
-            let exe_command = if let Some(exe_command) = config.execute.as_ref() {
-                exe_command
-            } else {
-                "execute"
-            };
-            let success = if let Some(success) = config.success.as_ref() {
-                success
-            } else {
-                "success"
-            };
-            let separator = "-";
-            MoniDebuger::new(title, separator, success, error, exe_command)
+            MoniDebuger::from(config.clone())
         } else {
-            MoniDebuger::default()
+            let default = DefaultMoniDebugMessage::default();
+            MoniDebuger::from(MoniDebugerConfigJson::from(default))
         }
     }
 }
@@ -95,7 +78,7 @@ fn opt_string_vec_to_str_vec<'a>(string_vec: Option<&'a Vec<String>>) -> Option<
         None
     }
 }
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct MoniDebugerConfigJson {
     title: Option<String>,
     success: Option<String>,
@@ -104,7 +87,20 @@ pub struct MoniDebugerConfigJson {
     //$COMMAND
     execute: Option<String>,
 }
-
+impl<'a> From<DefaultMoniDebugMessage<'a>> for MoniDebugerConfigJson {
+    fn from(message: DefaultMoniDebugMessage<'a>) -> Self {
+        Self {
+            title: Some(message.start_message()),
+            success: Some(message.success_message()),
+            error: Some(message.error_message()),
+            line: Some(message.line_message()),
+            execute: Some(format!(" execute {}", Self::MONI_EXECUTE_COMMAND_MARK)),
+        }
+    }
+}
+impl MoniDebugerConfigJson {
+    const MONI_EXECUTE_COMMAND_MARK: &'static str = "MONI_EXE";
+}
 impl MoniDebugerConfig for MoniDebugerConfigJson {
     fn error_message(&self) -> String {
         if let Some(error) = &self.error {
@@ -113,14 +109,19 @@ impl MoniDebugerConfig for MoniDebugerConfigJson {
             " error ".to_string()
         }
     }
-    fn execute_message_(&self) -> String {
-        " execute ".to_string()
-    }
-    fn execute_message(&self, _: &str) -> String {
+    fn execute_message(&self, execute_command: &str) -> String {
         if let Some(execute) = &self.execute {
-            execute.to_owned()
+            format!(
+                "{}\n{}",
+                self.line_message(),
+                execute.replace(Self::MONI_EXECUTE_COMMAND_MARK, execute_command)
+            )
         } else {
-            " execute ".to_string()
+            format!(
+                "{}\n{}",
+                self.line_message().replace("-", "*"),
+                " execute ".to_string()
+            )
         }
     }
     fn line_message(&self) -> String {

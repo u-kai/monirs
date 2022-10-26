@@ -7,6 +7,8 @@ use std::{
     thread,
 };
 
+use crate::configs::{debuger_config::MoniDebugerConfig, json::MoniDebugerConfigJson};
+
 use super::{
     configs::{json::MoniJson, moni_config::MoniConfig},
     parts::{
@@ -23,29 +25,30 @@ pub fn monitaring_from_json() -> () {
         json.to_moni().monitaring();
     } else {
         let message = DefaultMoniDebugMessage::default();
-        let debuger = MoniDebuger::from(message);
+        let json_config = MoniDebugerConfigJson::from(message);
+        let debuger = MoniDebuger::from(json_config);
         json.to_moni_with_debuger(debuger).monitaring()
     }
 }
 type CallBack = Box<dyn Fn(&str) -> Result<(), String>>;
 
-pub struct Moni<'a> {
+pub struct Moni<'a, D: MoniDebugerConfig> {
     exe_command: Option<MoniExecuteCommand<'a>>,
     exe_fn: Option<CallBack>,
     filestore: Arc<Mutex<FileStore>>,
     searcher: FileSearcher<'a>,
     around_secs: u64,
     around_nanos: u32,
-    debuger: MoniDebuger,
+    debuger: MoniDebuger<D>,
 }
-impl<'a, C: MoniConfig<'a>> From<&'a C> for Moni<'a> {
+impl<'a, C: MoniConfig<'a, D>, D: MoniDebugerConfig> From<&'a C> for Moni<'a, D> {
     fn from(config: &'a C) -> Self {
         let c = config.to_moni();
         c
     }
 }
 
-impl<'a> Moni<'a> {
+impl<'a, D: MoniDebugerConfig> Moni<'a, D> {
     pub fn monitaring(&self) {
         self.debuger.print_start_line();
         loop {
@@ -151,7 +154,7 @@ impl<'a> MoniBuilder<'a> {
             searcher_builder: FileSearcherBuilder::new(),
         }
     }
-    pub fn build_with_debuger(self, debuger: MoniDebuger) -> Moni<'a> {
+    pub fn build_with_debuger<D: MoniDebugerConfig>(self, debuger: MoniDebuger<D>) -> Moni<'a, D> {
         let searcher = self.searcher_builder.build();
         let mut filestore = FileStore::new();
         searcher

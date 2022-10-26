@@ -2,7 +2,10 @@ use clap::Parser;
 
 use crate::{
     configs::moni_config::MoniConfig,
-    parts::{debuger::MoniDebuger, moni_execute_command::MoniExecuteCommand},
+    parts::{
+        debuger::{DefaultMoniDebugMessage, MoniDebuger},
+        moni_execute_command::MoniExecuteCommand,
+    },
 };
 
 #[derive(Parser, Debug)]
@@ -42,8 +45,8 @@ fn split_space_or_comma<'a>(source: &'a str) -> Vec<&'a str> {
     }
     vec![source]
 }
-impl<'a> MoniConfig<'a> for MoniCli {
-    fn debug_message(&'a self) -> MoniDebuger {
+impl<'a> MoniConfig<'a, DefaultMoniDebugMessage<'a>> for MoniCli {
+    fn debug_message(&'a self) -> MoniDebuger<DefaultMoniDebugMessage> {
         MoniDebuger::default()
     }
     fn execute_command(&'a self) -> MoniExecuteCommand<'a> {

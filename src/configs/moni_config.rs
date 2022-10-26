@@ -3,19 +3,21 @@ use crate::{
     parts::{debuger::MoniDebuger, moni_execute_command::MoniExecuteCommand},
 };
 
-pub trait MoniConfig<'a> {
+use super::debuger_config::MoniDebugerConfig;
+
+pub trait MoniConfig<'a, D: MoniDebugerConfig> {
     fn workspace(&'a self) -> Option<&'a str>;
     fn ignore_filenames(&'a self) -> Option<Vec<&'a str>>;
     fn ignore_extensions(&'a self) -> Option<Vec<&'a str>>;
     fn ignore_path_words(&'a self) -> Option<Vec<&'a str>>;
     fn target_extensions(&'a self) -> Option<Vec<&'a str>>;
     fn execute_command(&'a self) -> MoniExecuteCommand<'a>;
-    fn debug_message(&'a self) -> MoniDebuger;
-    fn to_moni(&'a self) -> Moni<'a> {
+    fn debug_message(&'a self) -> MoniDebuger<D>;
+    fn to_moni(&'a self) -> Moni<'a, D> {
         let debuger = self.debug_message();
         self.to_moni_with_debuger(debuger)
     }
-    fn to_moni_with_debuger(&'a self, debuger: MoniDebuger) -> Moni<'a> {
+    fn to_moni_with_debuger(&'a self, debuger: MoniDebuger<D>) -> Moni<'a, D> {
         let mut builder = MoniBuilder::new().exe_command(self.execute_command());
         if self.ignore_filenames().is_some() {
             builder.set_ignore_files(self.ignore_filenames().unwrap())

@@ -1,5 +1,5 @@
 {
-  "workspace": "./src",
-  "target_extensions": ["rs"],
+  "workspace": "./",
+  "target_extensions": ["rs", "md"],
   "execute_command": "cat MONI_FILE_PATH"
 }
