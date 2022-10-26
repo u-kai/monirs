@@ -19,7 +19,7 @@ use super::{
 
 pub fn monitaring_from_json() -> () {
     let json = MoniJson::from_file("moni.json").unwrap();
-    if let Some(_) = json.debug_message {
+    if json.is_set_debug_message() {
         json.to_moni().monitaring();
     } else {
         let message = DefaultMoniDebugMessage::default();

@@ -9,10 +9,14 @@ fn main() {
     let exe_fn = |filepath: &str| -> Result<(), String> {
         let mut reader = BufReader::new(File::open(filepath).unwrap());
         let mut content = String::new();
-        reader.read_to_string(&mut content).unwrap();
-        println!("file path is \n{}\n", filepath);
-        println!("file content is \n{}\n", content);
-        Ok(())
+        match reader.read_to_string(&mut content) {
+            Err(e) => Err(e.to_string()),
+            _ => {
+                println!("file path is \n{}\n", filepath);
+                println!("file content is \n{}\n", content);
+                Ok(())
+            }
+        }
     };
     // tobe fix
     let message = DefaultMoniDebugMessage::default();

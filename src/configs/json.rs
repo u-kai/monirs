@@ -17,7 +17,7 @@ pub struct MoniJson {
     ignore_filenames: Option<Vec<String>>,
     ignore_extensions: Option<Vec<String>>,
     ignore_path_words: Option<Vec<String>>,
-    pub debug_message: Option<MoniDebugerConfigJson>,
+    debug_message: Option<MoniDebugerConfigJson>,
     execute_command: String,
 }
 impl MoniJson {
@@ -31,6 +31,9 @@ impl MoniJson {
         } else {
             Err(format!("{:?} is not found", filepath))
         }
+    }
+    pub fn is_set_debug_message(&self) -> bool {
+        self.debug_message.is_some()
     }
 }
 impl<'a> MoniConfig<'a> for MoniJson {
