@@ -79,10 +79,14 @@ impl<'a> Moni<'a> {
     fn exe(&self, filepath: &str) {
         if self.exe_fn.is_some() {
             match (self.exe_fn.as_ref().unwrap())(filepath) {
-                Ok(_) => self.debuger.print_ok_line(),
+                Ok(_) => {
+                    self.debuger.print_ok_line();
+                    self.debuger.print_line();
+                }
                 Err(e) => {
                     self.debuger.print_error_line();
                     println!("{}", e);
+                    self.debuger.print_line();
                 }
             };
             return;

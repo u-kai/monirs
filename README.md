@@ -32,6 +32,7 @@ And run rust program is below<br>
 fn main() {
     MoniJsonConfig::from_file("moni.json")
         .unwrap()
+
         .to_instance(DefaultMoniPrinter::default())
         .monitaring()
 }
