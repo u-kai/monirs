@@ -55,7 +55,7 @@ impl<'a> MoniConfig<'a> for MoniJson {
     fn workspace(&'a self) -> Option<&'a str> {
         self.workspace.as_ref().map(|s| s.as_str())
     }
-    fn debug_message(&'a self) -> MoniDebuger<'a> {
+    fn debug_message(&'a self) -> MoniDebuger {
         if let Some(config) = self.debug_message.as_ref() {
             let title = if let Some(title) = config.title.as_ref() {
                 title
@@ -105,40 +105,40 @@ pub struct MoniDebugerConfigJson {
     execute: Option<String>,
 }
 
-impl<'a> MoniDebugerConfig<'a> for MoniDebugerConfigJson {
-    fn error_message(&'a self) -> &'a str {
+impl MoniDebugerConfig for MoniDebugerConfigJson {
+    fn error_message(&self) -> String {
         if let Some(error) = &self.error {
-            error
+            error.to_owned()
         } else {
-            " error "
+            " error ".to_string()
         }
     }
-    fn execute_message(&'a self) -> &'a str {
+    fn execute_message(&self) -> String {
         if let Some(execute) = &self.execute {
-            execute
+            execute.to_owned()
         } else {
-            " execute "
+            " execute ".to_string()
         }
     }
-    fn line_message(&'a self) -> &'a str {
+    fn line_message(&self) -> String {
         if let Some(line) = &self.line {
-            line
+            line.to_owned()
         } else {
-            " --- "
+            " --- ".to_string()
         }
     }
-    fn start_message(&'a self) -> &'a str {
+    fn start_message(&self) -> String {
         if let Some(start) = &self.title {
-            start
+            start.to_owned()
         } else {
-            " start monitaring "
+            " start monitaring ".to_string()
         }
     }
-    fn success_message(&'a self) -> &'a str {
+    fn success_message(&self) -> String {
         if let Some(success) = &self.success {
-            success
+            success.to_owned()
         } else {
-            " success "
+            " success ".to_string()
         }
     }
 }

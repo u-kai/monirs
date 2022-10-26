@@ -41,7 +41,7 @@ pub struct Moni<'a> {
     searcher: FileSearcher<'a>,
     around_secs: u64,
     around_nanos: u32,
-    debuger: MoniDebuger<'a>,
+    debuger: MoniDebuger,
 }
 impl<'a, C: MoniConfig<'a>> From<&'a C> for Moni<'a> {
     fn from(config: &'a C) -> Self {
@@ -152,7 +152,7 @@ impl<'a> MoniBuilder<'a> {
             searcher_builder: FileSearcherBuilder::new(),
         }
     }
-    pub fn build_with_debuger(self, debuger: MoniDebuger<'a>) -> Moni<'a> {
+    pub fn build_with_debuger(self, debuger: MoniDebuger) -> Moni<'a> {
         let searcher = self.searcher_builder.build();
         let mut filestore = FileStore::new();
         searcher

@@ -15,7 +15,7 @@ pub trait MoniConfig<'a> {
         let debuger = self.debug_message();
         self.to_moni_with_debuger(debuger)
     }
-    fn to_moni_with_debuger(&'a self, debuger: MoniDebuger<'a>) -> Moni<'a> {
+    fn to_moni_with_debuger(&'a self, debuger: MoniDebuger) -> Moni<'a> {
         let mut builder = MoniBuilder::new().exe_command(self.execute_command());
         if self.ignore_filenames().is_some() {
             builder.set_ignore_files(self.ignore_filenames().unwrap())
