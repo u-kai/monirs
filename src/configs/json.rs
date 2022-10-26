@@ -110,18 +110,15 @@ impl MoniDebugerConfig for MoniDebugerConfigJson {
         }
     }
     fn execute_message(&self, execute_command: &str) -> String {
+        let line = self.line_message().replace("-", "*");
         if let Some(execute) = &self.execute {
             format!(
                 "{}\n{}",
-                self.line_message(),
+                line,
                 execute.replace(Self::MONI_EXECUTE_COMMAND_MARK, execute_command)
             )
         } else {
-            format!(
-                "{}\n{}",
-                self.line_message().replace("-", "*"),
-                " execute ".to_string()
-            )
+            format!("{}\n{}", line, " execute ".to_string())
         }
     }
     fn line_message(&self) -> String {
