@@ -18,7 +18,6 @@ fn main() {
             }
         }
     };
-    // tobe fix
     let message = DefaultMoniDebugMessage::default();
     let debuger = MoniDebuger::from(&message);
     monirs::moni::MoniBuilder::new()
