@@ -19,7 +19,7 @@ fn main() {
         }
     };
     let message = DefaultMoniDebugMessage::default();
-    let debuger = MoniDebuger::from(&message);
+    let debuger = MoniDebuger::from(message);
     monirs::moni::MoniBuilder::new()
         .root("./")
         .ignore_re("target")

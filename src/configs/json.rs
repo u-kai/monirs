@@ -113,7 +113,10 @@ impl MoniDebugerConfig for MoniDebugerConfigJson {
             " error ".to_string()
         }
     }
-    fn execute_message(&self) -> String {
+    fn execute_message_(&self) -> String {
+        " execute ".to_string()
+    }
+    fn execute_message(&self, _: &str) -> String {
         if let Some(execute) = &self.execute {
             execute.to_owned()
         } else {

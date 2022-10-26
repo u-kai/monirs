@@ -9,13 +9,7 @@ pub struct MoniDebuger {
 }
 impl Default for MoniDebuger {
     fn default() -> Self {
-        Self {
-            title: "start".to_string(),
-            separator: "-----------------------".to_string(),
-            success: "success".to_string(),
-            error: "error".to_string(),
-            execute: "execute".to_string(),
-        }
+        Self::from(DefaultMoniDebugMessage::default())
     }
 }
 impl MoniDebuger {
@@ -35,14 +29,14 @@ impl MoniDebuger {
         println!("{} {execute_command}", self.execute)
     }
 }
-impl<'a, C: MoniDebugerConfig> From<&'a C> for MoniDebuger {
-    fn from(config: &'a C) -> Self {
+impl<'a, C: MoniDebugerConfig> From<C> for MoniDebuger {
+    fn from(config: C) -> Self {
         Self {
             title: config.start_message(),
             separator: config.line_message(),
             success: config.success_message(),
             error: config.error_message(),
-            execute: config.execute_message(),
+            execute: config.execute_message_(),
         }
     }
 }
@@ -67,8 +61,11 @@ impl<'a> MoniDebugerConfig for DefaultMoniDebugMessage<'a> {
     fn error_message(&self) -> String {
         self.make_error_line_message()
     }
-    fn execute_message(&self) -> String {
-        self.make_execute_command_line_message()
+    fn execute_message_(&self) -> String {
+        String::from("exe")
+    }
+    fn execute_message(&self, command: &str) -> String {
+        self.make_execute_command_line_message(command)
     }
     fn line_message(&self) -> String {
         self.make_line_message()
@@ -113,8 +110,8 @@ impl<'a> DefaultMoniDebugMessage<'a> {
             &top_and_bottom_separator,
         )
     }
-    pub fn make_execute_command_line_message(&self) -> String {
-        "execute ".to_string()
+    pub fn make_execute_command_line_message(&self, command: &str) -> String {
+        self.make_message(&format!("execute {}", command))
     }
     pub fn make_line_message(&self) -> String {
         let message = "--";

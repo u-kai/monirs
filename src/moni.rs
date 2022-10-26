@@ -23,7 +23,7 @@ pub fn monitaring_from_json() -> () {
         json.to_moni().monitaring();
     } else {
         let message = DefaultMoniDebugMessage::default();
-        let debuger = MoniDebuger::from(&message);
+        let debuger = MoniDebuger::from(message);
         json.to_moni_with_debuger(debuger).monitaring()
     }
 }
