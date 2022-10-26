@@ -98,7 +98,8 @@ impl<'a> DefaultMoniDebugMessage<'a> {
     fn make_message(&self, message: &str) -> String {
         let separator_len = self.calc_added_separator_len(message);
         let top_and_bottom = self.separator.repeat(separator_len);
-        if separator_len % 2 == 0 {
+        let diff = self.title.len() - message.len();
+        if diff % 2 != 0 {
             return format!("{}{}{}-", top_and_bottom, message, top_and_bottom,);
         }
         format!("{}{}{}", top_and_bottom, message, top_and_bottom,)
@@ -130,5 +131,22 @@ impl<'a> DefaultMoniDebugMessage<'a> {
     pub fn make_execute_line_message(&self) -> String {
         let message = " execute ";
         format!("\n{}\n", self.make_message(message),)
+    }
+}
+
+#[cfg(test)]
+mod test_debuger {
+    use super::*;
+    #[test]
+    fn test_line_len() {
+        let default_debuger = DefaultMoniDebugMessage::default();
+        assert_eq!(
+            default_debuger.error_message().len(),
+            default_debuger.line_message().len()
+        );
+        assert_eq!(
+            default_debuger.success_message().len(),
+            default_debuger.line_message().len()
+        );
     }
 }
