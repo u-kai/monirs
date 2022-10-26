@@ -62,19 +62,25 @@ In the exapmle above,the console outputs the file path where the change was dete
 
 ```rust
 fn main() {
-    let exe_fn = |filepath: &str| -> Result<(), String> {
+    let exe_fn = |filepath: &str| -> Result<String, String> {
         let mut reader = BufReader::new(File::open(filepath).unwrap());
         let mut content = String::new();
-        reader.read_to_string(&mut content).unwrap();
-        println!("file path is \n{}\n", filepath);
-        println!("file content is \n{}\n", content);
-        Ok(())
+        match reader.read_to_string(&mut content) {
+            Err(e) => Err(e.to_string()),
+            _ => {
+                let one_line = format!("file path is \n{}\n", filepath);
+                let two_line = format!("file content is \n{}\n", content);
+                Ok(format!("{}\n{}\n", one_line, two_line))
+            }
+        }
     };
-    MoniBuilder::new()
+    let message = DefaultMoniDebugMessage::default();
+    let debuger = MoniDebuger::from(message);
+    monirs::moni::MoniBuilder::new()
         .root("./")
         .ignore_re("target")
         .exe_fn(exe_fn)
-        .build()
+        .build_with_debuger(debuger)
         .monitaring();
 }
 ```

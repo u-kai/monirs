@@ -14,7 +14,7 @@ fn main() {
             _ => {
                 let one_line = format!("file path is \n{}\n", filepath);
                 let two_line = format!("file content is \n{}\n", content);
-                Ok(format!("{}{}", one_line, two_line))
+                Ok(format!("{}\n{}\n", one_line, two_line))
             }
         }
     };
