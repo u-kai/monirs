@@ -91,6 +91,31 @@ impl<'a> FileSearcher<'a> {
             ignore_extension: self.ignore_extension.clone(),
         }
     }
+    pub fn get_all_files(&self) -> Vec<PathBuf> {
+        let root_dir = fs::read_dir(self.root).expect(&format!("{} can not read_dir", self.root));
+        let mut all_files = Vec::new();
+        root_dir
+            .filter_map(|entry| entry.ok())
+            .filter_map(|entry| match entry.file_type() {
+                Ok(file_type) => Some((file_type, entry.path())),
+                Err(_) => None,
+            })
+            .for_each(|(file_type, path)| {
+                if self.is_ignore(&path) {
+                    return;
+                }
+                if file_type.is_dir() {
+                    let child = self.spawn_child(path.to_str().unwrap());
+                    all_files.append(&mut child.get_all_files());
+                    return;
+                }
+                if self.is_target(&path) {
+                    all_files.push(path);
+                    return;
+                }
+            });
+        all_files
+    }
     pub fn get_all_filenames(&self) -> Vec<String> {
         let root_dir = fs::read_dir(self.root).expect(&format!("{} can not read_dir", self.root));
         let mut all_files = Vec::new();
