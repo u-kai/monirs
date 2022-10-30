@@ -58,22 +58,21 @@ impl<'a, D: MoniDebugerConfig> Moni<'a, D> {
                 .into_iter()
                 .filter_map(|filepath| {
                     let file_path_str = filepath.as_str();
-                    if let Ok(Ok(meta)) = File::open(file_path_str).map(|op| op.metadata()) {
-                        Some((filepath, meta_data_to_file_size(meta)))
-                    } else {
-                        None
+                    match get_file_size(file_path_str) {
+                        Some(size) => Some((filepath, size)),
+                        None => None,
                     }
                 })
-                .for_each(|(filepath, time)| {
+                .for_each(|(filepath, size)| {
                     let mut store = self.filestore.lock().unwrap();
-                    if store.is_modify(&filepath, time) {
+                    if store.is_modify(&filepath, size) {
                         self.exe(&filepath);
-                        store.update(filepath, time);
+                        store.update(filepath, size);
                         return;
                     }
                     if store.is_new(&filepath) {
                         self.exe(&filepath);
-                        store.insert(filepath, time);
+                        store.insert(filepath, size);
                         return;
                     }
                 })
@@ -137,6 +136,26 @@ impl<'a, D: MoniDebugerConfig> Moni<'a, D> {
     }
 }
 
+#[cfg(not(target_os = "windows"))]
+fn get_file_size(filepath: &str) -> Option<u128> {
+    if let Ok(Ok(meta)) = File::open(filepath).map(|op| op.metadata()) {
+        Some(meta_data_to_file_size(meta))
+    } else {
+        None
+    }
+}
+#[cfg(target_os = "windows")]
+fn get_file_size(filepath: &str) -> Option<u128> {
+    use std::io::BufReader;
+    if let Ok(file) = File::open(filepath) {
+        let mut reader = BufReader::new(File::open(filepath).unwrap());
+        let mut buf = Vec::new();
+        let size = reader.read_to_end(&mut buf).unwrap() as u128;
+        Some(size)
+    } else {
+        None
+    }
+}
 pub struct MoniBuilder<'a> {
     exe_command: Option<MoniExecuteCommand<'a>>,
     exe_fn: Option<CallBack>,

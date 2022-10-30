@@ -1,7 +1,7 @@
 use monirs::parts::filesearcher::FileSearcherBuilder;
 
 fn main() {
-    let mut filesearcher = FileSearcherBuilder::new()
+    let filesearcher = FileSearcherBuilder::new()
         .root("./")
         .target_extension("rs")
         .build();
