@@ -176,6 +176,32 @@ impl<'a> MoniBuilder<'a> {
             searcher_builder: FileSearcherBuilder::new(),
         }
     }
+    #[cfg(target_os = "windows")]
+    pub fn build_with_debuger<D: MoniDebugerConfig>(self, debuger: MoniDebuger<D>) -> Moni<'a, D> {
+        use std::intrinsics::size_of;
+
+        let searcher = self.searcher_builder.build();
+        let mut filestore = FileStore::new();
+        searcher
+            .get_all_filenames()
+            .into_iter()
+            .filter_map(|filepath| {
+                let file_path_str = filepath.as_str();
+                (file_path_str, get_file_size(file_path_str))
+            })
+            .for_each(|(path, size)| filestore.insert(path, size));
+        let filestore = Arc::new(Mutex::new(filestore));
+        Moni {
+            exe_command: self.exe_command,
+            exe_fn: self.exe_fn,
+            debuger,
+            filestore,
+            searcher,
+            around_nanos: self.around_nanos,
+            around_secs: self.around_secs,
+        }
+    }
+    #[cfg(not(target_os = "windows"))]
     pub fn build_with_debuger<D: MoniDebugerConfig>(self, debuger: MoniDebuger<D>) -> Moni<'a, D> {
         let searcher = self.searcher_builder.build();
         let mut filestore = FileStore::new();
@@ -264,6 +290,7 @@ impl<'a> MoniBuilder<'a> {
     }
 }
 
+#[cfg(not(target_os = "windows"))]
 fn meta_data_to_file_size(metadata: Metadata) -> u128 {
     metadata.size() as u128
 }
