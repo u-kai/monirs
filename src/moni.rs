@@ -1,7 +1,8 @@
 use core::time;
+#[cfg(not(target_os = "windows"))]
+use std::os::unix::prelude::MetadataExt;
 use std::{
     fs::{File, Metadata},
-    os::unix::prelude::MetadataExt,
     process::{Command, Stdio},
     sync::{Arc, Mutex},
     thread,
@@ -147,6 +148,7 @@ fn get_file_size(filepath: &str) -> Option<u128> {
 #[cfg(target_os = "windows")]
 fn get_file_size(filepath: &str) -> Option<u128> {
     use std::io::BufReader;
+    use std::io::Read;
     if let Ok(file) = File::open(filepath) {
         let mut reader = BufReader::new(File::open(filepath).unwrap());
         let mut buf = Vec::new();
